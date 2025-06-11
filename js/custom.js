@@ -7,3 +7,4 @@ function cargarFragmento(idElemento, archivo) {
         })
     .catch(error => console.error(`Error cargando ${archivo}:`, error));
 }
+
