@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AV School</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="apple-touch-icon" href="img/apple-icon.png">
+        <link rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/templatemo.css">
+        <link rel="stylesheet" href="css/custom.css">
+
+        <!-- Load fonts style after rendering the layout styles -->
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;200;300;400;500;700;900&display=swap">
+        <link rel="stylesheet" href="css/fontawesome.min.css">
+
+        <script src="db-simulacion/datos.js"></script>
+        <script src="db-simulacion/funciones.js"></script>
+
+</head>
+<body>
+
+    <div id="header"></div>
+
+    <!-- Start Content -->
+    <div class="container py-5">
+        <div class="row">
+
+            <!-- Filtros -->
+            <div class="col-lg-2" >
+                <h1 class="h2 pb-4">Categories</h1>
+                <ul class="list-unstyled" id="categorias">
+                    <li class="pb-3">
+                        <a class="collapsed d-flex justify-content-between  text-decoration-none " href="productos.html?categoria=todos">Todos</a>
+                    </li>
+                </ul>
+            </div>
+            <script>
+                const categorias = obtenerCategorias();
+                const categoriasContainer = document.getElementById('categorias');
+                categorias.forEach(categoria => {
+                    const li = document.createElement('li');
+                    li.className = 'pb-3';
+                    li.innerHTML = `
+                            <a class="collapsed d-flex justify-content-between  text-decoration-none"  href="productos.html?categoria=${categoria.codigo}">${categoria.nombre}</a>
+                            `;
+                    categoriasContainer.appendChild(li);
+                });
+            </script>
+            <!-- Productos y paginación -->
+            <div class="col-lg-7" >              
+                <div class="row" id="products">
+                </div>
+                <!-- Pagination -->
+                <div div="row">
+                    <ul class="pagination pagination-lg justify-content-end" id="pagination">
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-lg-3 bg-light p-5">
+                <h3 class="h3 pb-2">Carrito de Compras</h3>
+                <!-- Precio total -->
+                <p class="text-right pb-2">Total: $ <span id="total"></span></p>
+                <!-- Elementos del carrito -->
+                <ul id="carrito" class="list-group"></ul>
+
+                <!--  -->
+                <div id="boton-vaciar" class="btn btn-danger text-decoration-none" onclick="vaciarCarrito()">Vaciar</div>
+                <div class="btn btn-success text-decoration-none" id="boton-pagar">
+                    <a class="text-decoration-none btn-success text-white"  href="pago.html" target="target_blank">Pagar</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        mostrarCarrito();
+    </script>
+
+    <script>   
+
+        const queryString = window.location.search;
+        const params = new URLSearchParams(queryString);
+        const categoria = params.get("categoria");
+        let pagina = params.get("pagina");
+        pagina = pagina ? parseInt(pagina) : 1; // Convert to 1-based index
+
+        const productos = obtenerCursos(categoria, pagina);
+        const productosContainer = document.getElementById('products');
+        productos.forEach(curso => {
+            const productoCard = document.createElement('div');
+            productoCard.className = 'col-md-4';
+            productoCard.innerHTML = `
+                <div class="card mb-4 product-wap rounded-0">
+                    <div class="card rounded-0">
+                        <img class="card-img rounded-0 img-fluid" src="${curso.imagen}">
+                        <div class="card-img-overlay rounded-0 product-overlay d-flex align-items-center justify-content-center">
+                            <ul class="list-unstyled">
+                                <li><a class="btn btn-success text-white mt-2" href="detalles.html?codigo=${curso.codigo}"><i class="far fa-eye"></i></a></li>
+                                <li><a class="btn btn-success text-white mt-2 btn-add" ><i class="fas fa-cart-plus"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <a href="shop-single.html" class="h3 text-decoration-none">${curso.nombre}</a>
+                        <p class="text-center mb-0">$${curso.precio}</p>
+                    </div>
+                </div>`;
+
+            productoCard.querySelector(".btn-add").addEventListener('click', (e) => {
+                //e.preventDefault(); // Evita navegación si hay href
+                agregarCurso(curso);
+                // Aquí puedes agregar lógica para agregar al carrito
+            });
+
+            const productStarts = document.createElement('ul');
+            productStarts.className = 'list-unstyled d-flex justify-content-center mb-1';
+            for (let i = 0; i < 5; i++) {
+                const star = document.createElement('li');
+                star.innerHTML = `<i class="${i < curso.clasificacion ? 'text-warning' : 'text-muted'} fa fa-star"></i>`;
+                productStarts.appendChild(star);
+            }
+            productoCard.querySelector('.card-body').appendChild(productStarts);
+            productosContainer.appendChild(productoCard);
+
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(contarCursos(categoria) / 6); // Assuming 6 products per page
+
+            pagination.innerHTML = ''; // Clear existing pagination
+            for (let i = 1; i <= totalPages; i++) {
+                const pageItem = document.createElement('li');
+                const pageLink = document.createElement('a');
+                if (i === pagina) {
+                    pageItem.className = 'page-item disabled';
+                    pageLink.className = 'page-link active rounded-0 mr-3 shadow-sm border-top-0 border-left-0 text-dark';
+                } else {
+                    pageItem.className = 'page-item';
+                    pageLink.className = 'page-link rounded-0 mr-3 shadow-sm border-top-0 border-left-0 text-dark';
+                }
+                pageLink.href = `?categoria=${categoria}&pagina=${i}`;
+                pageLink.textContent = i;
+                pageItem.appendChild(pageLink);
+                pagination.appendChild(pageItem);
+            }
+        }); 
+    </script>
+    <!-- End Content -->
+    
+    <div id="footer"></div>
+
+    <!-- Start Script -->
+    <script src="js/jquery-1.11.0.min.js"></script>
+    <script src="js/jquery-migrate-1.2.1.min.js"></script>
+    <script src="js/bootstrap.bundle.min.js"></script>
+    <script src="js/templatemo.js"></script>
+    <script src="js/custom.js"></script>
+    <!-- End Script -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarFragmento("header", "header.html");
+            cargarFragmento("footer", "footer.html");
+        });
+    </script>
+
+</body>
+</html>

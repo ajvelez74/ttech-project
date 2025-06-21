@@ -103,7 +103,7 @@
                 <a href="#"><img src="${cat.imagen}" class="rounded img-fluid border"></a>
                 <h5 class="text-center mt-3 mb-3">${cat.nombre}</h5>
                 <p class="text-center">${cat.descripcion}</p>
-                <p class="text-center"><a class="btn btn-success" href="#">Go Shop</a></p>
+                <p class="text-center"><a class="btn btn-success" href="productos.html?categoria=${cat.codigo}">Comprar</a></p>
             `;
             document.getElementById('categorias').appendChild(tarjeta);
         });
@@ -125,8 +125,18 @@
         document.addEventListener("DOMContentLoaded", () => {
             cargarFragmento("header", "header.html");
             cargarFragmento("footer", "footer.html");
+
+            const contadorCarrito = sessionStorage.getItem("contadorCarrito") || 0;
+            console.log("Contador de carrito:", contadorCarrito);
+            const etiquetaContadorCarrito = document.getElementById("contadorCarrito");
+            etiquetaContadorCarrito.textContent = contadorCarrito;
         });
     </script>
+        <script>    
+             window.onload = () => {
+                
+            };
+        </script>
 
 </body>
 </html>
